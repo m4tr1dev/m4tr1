@@ -1,0 +1,103 @@
+# .gitlab-ci.yml
+# GitLab Pages + Auto-Signals + CV + Archive
+# Free tier: 400 CI minutes/month – plenty for this
+
+stages:
+  - build
+  - deploy
+
+# -------------------------------------------------
+# 1. DEPLOY PAGES (runs on every push to main)
+# -------------------------------------------------
+pages:
+  image: alpine:latest
+  stage: deploy
+  script:
+    - echo "Deploying m4tr1 site to https://m4tr1dev.gitlab.io/"
+    - apk add --no-cache git
+    # Ensure public/ exists
+    - mkdir -p public
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 month
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - "**/*"
+      when: always
+
+# -------------------------------------------------
+# 2. UPDATE LIVE SIGNALS (runs every 30 min via schedule)
+# -------------------------------------------------
+update_signals:
+  image: curlimages/curl
+  stage: build
+  script:
+    - apk add --no-cache jq coreutils
+    - |
+      # Fetch real BTC price
+      curl -s "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd" > /tmp/price.json
+      PRICE=$(jq -r '.bitcoin.usd' /tmp/price.json)
+      
+      # Random confidence & action (serious but fun)
+      CONF=$((60 + $RANDOM % 30))
+      ACTION=$(shuf -n1 -e HOLD BUY SELL)
+      
+      # Write signals.json
+      mkdir -p public/m4tr1
+      cat > public/m4tr1/signals.json <<EOF
+      {
+        "asset": "BTC",
+        "price": $PRICE,
+        "action": "$ACTION",
+        "conf": $CONF,
+        "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+        "note": "m4tr1 signal – trade with caution (and tea)"
+      }
+      EOF
+      
+      echo "Signal updated: $ACTION @ \$$PRICE (conf: $CONF%)"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  artifacts:
+    paths:
+      - public/m4tr1/signals.json
+    expire_in: 1 day
+
+# -------------------------------------------------
+# 3. GENERATE CV PDF (runs on push or schedule)
+# -------------------------------------------------
+generate_cv:
+  image: pandoc/core
+  stage: build
+  script:
+    - pandoc cv.md -o public/m4tr1/cv.pdf --pdf-engine=weasyprint || pandoc cv.md -o public/m4tr1/cv.pdf
+    - echo "CV PDF generated → /m4tr1/cv.pdf"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - cv.md
+  artifacts:
+    paths:
+      - public/m4tr1/cv.pdf
+
+# -------------------------------------------------
+# 4. DAILY ARCHIVE (runs once per day)
+# -------------------------------------------------
+archive_signals:
+  image: alpine:latest
+  stage: build
+  script:
+    - apk add --no-cache jq coreutils
+    - mkdir -p public/m4tr1/archive
+    - DATE=$(date -u +%Y-%m-%d)
+    - cp public/m4tr1/signals.json "public/m4tr1/archive/${DATE}.json"
+    - echo "Archived signal → /m4tr1/archive/${DATE}.json"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $SCHEDULE_DESCRIPTION == "daily-archive"
+  artifacts:
+    paths:
+      - public/m4tr1/archive/
+    expire_in: 1 year
