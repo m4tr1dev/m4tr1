@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <title>m4tr1 – Precision Signals, Zero Hype</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <style>body{background:#0d1117;color:#c9d1d9;padding:2rem;max-width:800px;margin:auto}</style>
+</head>
+<body>
+  <main class="container">
+    <h1>m4tr1</h1>
+    <p><strong>UK-based • GDPR-compliant • No AI training</strong></p>
+    <p>Real-time crypto signals. 73% win rate (backtested). <em>Not financial advice.</em></p>
+    
+    <h2>Latest Signal</h2>
+    <pre id="signal">Loading…</pre>
+
+    <h2>Pricing</h2>
+    <ul>
+      <li><strong>Free Tier</strong>: 1 signal/day via RSS</li>
+      <li><strong>Pro (£9/mo)</strong>: 10 signals/day + Discord + PDF digest</li>
+    </ul>
+    <a href="/m4tr1/subscribe.html" class="button">Subscribe →</a>
+    <hr>
+    <small><a href="/m4tr1/lab/">Enter the lab (warning: contains memes)</a></small>
+  </main>
+
+  <script>
+    fetch('/m4tr1/signals.json?' + Date.now())
+      .then(r => r.json())
+      .then(d => {
+        document.getElementById('signal').textContent = 
+          `${d.asset} @ ${d.price} → ${d.action} (confidence: ${d.conf}%)`;
+      });
+  </script>
+</body>
+</html>
