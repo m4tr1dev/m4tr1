@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <title>m4tr1 Signals – Not Financial Advice (Wink)</title>
+  <style>body{background:#0d1117;color:#c9d1d9;font-family:monospace;padding:2rem}h1{font-size:2em;border-bottom:1px solid #58a6ff}.signal{background:#161b22;margin:1rem 0;padding:1rem;border-left:4px solid #58a6ff}button{background:#238636;color:white;border:none;padding:0.5rem 1rem;cursor:pointer}:hover{background:#2ea043}</style>
+</head>
+<body>
+  <h1>m4tr1 Signals: Entertain Your Portfolio</h1>
+  <p>Leetspeak alerts for traders who get the joke. Sample feed below—trade at your own (hilarious) risk.</p>
+  <div id="signals"></div>
+  <script>
+    const samples = [
+      {time: 'Now-ish', asset: 'BTC', signal: 'BUY @ 4.20k – Moon or Meme? 🚀', action: 'Sim Trade'},
+      {time: 'In 5 min', asset: 'ETH', signal: 'SELL @ 3.14k – Pi's revenge 🥧', action: 'Ignore & Laugh'},
+      {time: 'Whenever', asset: 'DOGE', signal: 'HODL forever – Elon said so (did he?) 🐕', action: 'YOLO'}
+    ];
+    document.getElementById('signals').innerHTML = samples.map(s => 
+      `<div class="signal"><strong>${s.time}</strong> | ${s.asset}: ${s.signal} <button onclick="alert('Sim: +${Math.random()>0.5 ? '420%' : '-69%'} – Blame m4tr1!')">${s.action}</button></div>`
+    ).join('');
+  </script>
+  <a href="/0rg4n1c/">Back to Lab</a> | <a href="https://x.com/sitaragabie">Follow for Real Alerts</a>
+</body>
+</html>
